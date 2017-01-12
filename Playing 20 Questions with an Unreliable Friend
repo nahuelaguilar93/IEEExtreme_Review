@@ -1,0 +1,84 @@
+import itertools
+#from timeit import default_timer as timer
+
+for testcases in range(int(input())):
+    input()
+    questionsNum, liesNum = tuple(int(x) for x in input().split())
+    singleQuestions = []
+    compAnsForm = []
+    answersRecieved = []
+    for w in range(questionsNum):
+        question = input()
+        if " and " not in question and " or " not in question:
+            compAnsForm.append((None, len(singleQuestions)))
+            question = tuple(question.split())
+            singleQuestions.append(question)
+        else:
+            if "and" in question:
+                composed = tuple(tuple(single.split()) for single in question.split(" and "))
+                compAnsForm.append(("and", len(singleQuestions), len(singleQuestions) + len(composed)))
+                for q in composed:
+                    singleQuestions.append(q)
+            else:
+                composed = tuple(tuple(single.split()) for single in question.split(" or "))
+                compAnsForm.append(("or", len(singleQuestions), len(singleQuestions) + len(composed)))
+                for q in composed:
+                    singleQuestions.append(q)
+        if input() == "yes":
+            answersRecieved.append(True)
+        else:
+            answersRecieved.append(False)
+
+    colors = ["r", "g", "b"]
+    finalAnswer = [set() for x in range(10)]
+#    answering = 0
+#    composing = 0
+#    resulting = 0
+    for colorList in itertools.product(colors, repeat=10):
+#        start = timer()
+        caseSingleAnswers = []
+        for question in singleQuestions:
+            if question[0] == "count":
+                caseSingleAnswers.append(colorList.count(question[1]) == int(question[2]))
+            else:
+                caseSingleAnswers.append(colorList[int(question[1])-1] == question[2])
+#        end = timer()
+#        answering = answering + (end-start)
+#        start = timer()
+        composedAnswers = []
+        for x in compAnsForm:
+            if x[0] == None:
+                composedAnswers.append(caseSingleAnswers[x[1]])
+            elif x[0] == "and":
+                compAns = True
+                for partialAns in caseSingleAnswers[x[1]:x[2]]:
+                    compAns = compAns and partialAns
+                composedAnswers.append(compAns)
+            else:
+                compAns = False
+                for partialAns in caseSingleAnswers[x[1]:x[2]]:
+                    compAns = compAns or partialAns
+                composedAnswers.append(compAns)
+        coincidences = [a == b for a, b in zip(composedAnswers, answersRecieved)]
+#        end = timer()
+#        composing = composing + (end-start)
+#        start = timer()
+        if coincidences.count(False) == liesNum:
+            for ix,elem in enumerate(finalAnswer):
+                elem.add(colorList[ix])
+#        end = timer()
+#        resulting = resulting + (end-start)
+    stringedFinalAnswer = []
+    for elem in finalAnswer:
+        rgb = ""
+        if "r" in elem:
+            rgb += "r"
+        if "g" in elem:
+            rgb += "g"
+        if "b" in elem:
+            rgb += "b"
+        stringedFinalAnswer.append(rgb)
+    print(*stringedFinalAnswer)
+#    print(answering)
+#    print(composing)
+#    print(resulting)
